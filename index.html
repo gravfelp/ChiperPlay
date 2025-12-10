@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CipherPlay: Laboratorium Kriptografi</title>
+    <link rel="icon" type="image/png" href="chiper.png">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Palet Warna Modern dan Bersih
+                        'app-bg': '#f8f8f8',      // Latar belakang keseluruhan (hampir putih)
+                        'card-bg': '#ffffff',     // Latar belakang Card (Putih bersih)
+                        'primary-teal': '#14b8a6', // Aksen Teal/Biru-Hijau
+                        'secondary-teal': '#0f766e', // Hover
+                        'text-primary': '#1f2937',// Hitam Teks
+                        'text-secondary': '#6b7280',// Abu-abu Teks
+                        'border-light': '#e5e7eb', // Border Card
+                        'input-bg': '#f3f4f6',    // Background Input/Textarea
+                    },
+                    boxShadow: {
+                        // Shadow Halus dan Konsisten
+                        'subtle': '0 1px 3px rgba(0, 0, 0, 0.05)',
+                        'medium': '0 10px 15px rgba(0, 0, 0, 0.03)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Menggunakan font sans-serif modern*/
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            color: theme('colors.text-primary');
+        }
+
+        /* Styling untuk bar chart hasil analisis (menggunakan aksen Teal) */
+        .bar-chart-container .bar-item {
+            display: flex;
+            align-items: center;
+            padding: 4px 0;
+        }
+
+        .bar-chart-container .bar-label {
+            width: 25px;
+            font-weight: 600;
+            color: theme('colors.text-primary');
+        }
+
+        .bar-chart-container .bar-chart {
+            flex-grow: 1;
+            height: 10px;
+            /* Lebih ramping */
+            background-color: theme('colors.input-bg');
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+
+        .bar-chart-container .bar-fill {
+            height: 100%;
+            background-color: theme('colors.primary-teal');
+            /* Aksen Teal */
+            transition: width 0.3s ease;
+        }
+
+        .bar-chart-container .bar-percentage {
+            font-size: 0.75rem;
+            width: 50px;
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body class="bg-app-bg min-h-screen">
+
+    <header class="bg-card-bg shadow-subtle sticky top-0 z-20 border-b border-border-light/70">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center py-4">
+            <div class="logo text-2xl font-bold text-text-primary flex items-center">
+                <svg class="w-6 h-6 mr-2 text-primary-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
+                    </path>
+                </svg>
+                <span class="text-primary-teal">Cipher</span><span class="font-light">Play</span>
+            </div>
+
+            <div
+                class="text-sm text-text-secondary font-medium px-3 py-1 rounded-full border border-border-light hidden sm:block">
+                Laboratorium Kriptografi Klasik
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 z-10">
+        <div class="flex space-x-1 border-b border-border-light">
+            <div class="nav-tab px-4 py-2 text-base font-semibold cursor-pointer transition duration-150 ease-in-out border-b-2 active text-primary-teal border-primary-teal"
+                data-tab="cipher-lab">
+                Cipher Lab
+            </div>
+            <div class="nav-tab px-4 py-2 text-base font-semibold text-text-secondary hover:text-primary-teal cursor-pointer transition duration-150 ease-in-out border-b-2 border-transparent"
+                data-tab="cryptanalysis-toolkit">
+                Cryptanalysis Toolkit
+            </div>
+        </div>
+    </div>
+
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <div id="cipher-lab" class="tab-content active">
+
+            <div class="mb-6 p-4 rounded-lg bg-card-bg shadow-subtle border-l-4 border-primary-teal">
+                <div class="text-xl font-bold text-primary-teal mb-1 flex items-center">
+                    Kriptografi Klasik
+                </div>
+                <div class="text-text-secondary text-sm">Enkripsi dan dekripsi pesan menggunakan sandi Caesar, Vigenère,
+                    dan Rail Fence.</div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <div class="bg-card-bg p-6 rounded-xl shadow-medium space-y-5 border border-border-light">
+                    <h3 class="text-lg font-bold text-text-primary border-b border-border-light pb-2">Input &
+                        Konfigurasi</h3>
+
+                    <div class="space-y-2">
+                        <label for="input-text" class="block text-sm font-semibold text-text-primary">Area Input Teks
+                            (Plaintext/Ciphertext)</label>
+                        <textarea id="input-text" placeholder="Masukkan teks di sini... (contoh: FIKOM UMI)"
+                            class="w-full h-32 p-3 border border-border-light rounded-lg focus:ring-primary-teal focus:border-primary-teal font-mono text-sm resize-y bg-input-bg"></textarea>
+                        <div class="flex justify-between text-xs mt-1">
+                            <span class="raw-count text-text-secondary"># <span id="raw-char-count">0</span> karakter
+                                asli</span>
+                            <span class="clean-count text-primary-teal font-semibold">🧹 <span
+                                    id="clean-char-count">0</span> setelah cleaning</span>
+                        </div>
+                    </div>
+
+
+                    <h3 class="text-base font-semibold text-text-primary pt-2">Pemilihan Sandi</h3>
+                    <div id="cipher-selection" class="space-y-3">
+                        <div class="cipher-option selected border border-primary-teal bg-teal-50/50 p-4 rounded-lg cursor-pointer transition duration-150 ease-in-out shadow-subtle"
+                            data-cipher="caesar">
+                            <label for="caesar" class="block font-bold text-text-primary">Caesar Cipher</label>
+                            <p class="text-sm text-text-secondary">Substitusi monoalfabetik dengan geser tetap.</p>
+                        </div>
+                        <div class="cipher-option border border-border-light p-4 rounded-lg cursor-pointer transition duration-150 ease-in-out hover:border-primary-teal shadow-subtle"
+                            data-cipher="vigenere">
+                            <label for="vigenere" class="block font-bold text-text-primary">Vigenère Cipher</label>
+                            <p class="text-sm text-text-secondary">Substitusi polialfabetik dengan kata kunci.</p>
+                        </div>
+                        <div class="cipher-option border border-border-light p-4 rounded-lg cursor-pointer transition duration-150 ease-in-out hover:border-primary-teal shadow-subtle"
+                            data-cipher="railfence">
+                            <label for="railfence" class="block font-bold text-text-primary">Rail Fence Cipher</label>
+                            <p class="text-sm text-text-secondary">Transposisi dengan pola zig-zag.</p>
+                        </div>
+                    </div>
+
+                    <div class="key-input-group pt-2">
+                        <label for="key-input" class="block text-sm font-semibold text-text-primary mb-2">Input
+                            Kunci</label>
+                        <input type="text" id="key-input" placeholder="Contoh: 3 (geseran 0-25)"
+                            class="w-full p-3 border border-border-light rounded-lg focus:ring-primary-teal focus:border-primary-teal text-sm bg-input-bg">
+                        <div class="key-validation-msg text-xs text-red-600 mt-1 min-h-4" id="key-validation-msg"></div>
+                    </div>
+
+                    <div class="flex gap-4 pt-4">
+                        <button
+                            class="btn bg-primary-teal text-white py-3 px-6 rounded-lg font-semibold hover:bg-secondary-teal transition duration-150 flex-1 shadow-md active:scale-[0.98]"
+                            id="encrypt-btn">ENCRYPT</button>
+                        <button
+                            class="btn bg-white text-primary-teal border border-primary-teal py-3 px-6 rounded-lg font-semibold hover:bg-teal-50 transition duration-150 flex-1 active:scale-[0.98] shadow-subtle"
+                            id="decrypt-btn">DECRYPT</button>
+                    </div>
+
+                </div>
+
+                <div class="bg-card-bg p-6 rounded-xl shadow-medium space-y-5 border border-border-light">
+                    <h3 class="text-lg font-bold text-text-primary border-b border-border-light pb-2">Output & Log</h3>
+
+                    <div class="space-y-2">
+                        <label for="output-text" class="block text-sm font-semibold text-text-primary">Area Output
+                            Teks</label>
+                        <textarea id="output-text" readonly placeholder="Hasil akan muncul di sini..."
+                            class="w-full h-32 p-3 border border-border-light bg-input-bg rounded-lg font-mono text-sm resize-y"></textarea>
+                    </div>
+
+                    <div class="bg-teal-50/50 border-l-4 border-primary-teal p-4 rounded-lg shadow-sm">
+                        <h4 class="font-semibold text-primary-teal flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                            Informasi Operasi (Auto-Clean)
+                        </h4>
+                        <ul class="list-disc list-inside text-sm text-text-secondary mt-2 space-y-1">
+                            <li>Input otomatis dibersihkan (huruf A-Z kapital saja).</li>
+                            <li>Spasi, angka, dan tanda baca akan dihapus.</li>
+                            <li>Pastikan kunci sesuai dengan tipe cipher yang dipilih.</li>
+                        </ul>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-4">
+                        <span id="operation-log" class="text-sm text-primary-teal font-semibold">Siap beroperasi.</span>
+                        <button
+                            class="copy-data-btn bg-input-bg text-text-secondary text-xs py-1.5 px-3 rounded-full hover:bg-gray-300 transition duration-150 active:scale-[0.98] border border-border-light shadow-subtle"
+                            id="copy-output-btn">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m-7 4l3 3m0 0l-3 3m3-3H4">
+                                </path>
+                            </svg>
+                            Copy Output
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="cryptanalysis-toolkit" class="tab-content hidden">
+
+            <div class="mb-6 p-4 rounded-lg bg-card-bg shadow-subtle border-l-4 border-primary-teal">
+                <div class="text-xl font-bold text-primary-teal mb-1 flex items-center">
+                    Cryptanalysis
+                </div>
+                <div class="text-sm text-text-secondary">Analisis dan pemecahan ciphertext menggunakan Frequency
+                    Analysis dan Caesar Brute-Force.</div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <div class="bg-card-bg p-6 rounded-xl shadow-medium space-y-5 border border-border-light">
+                    <h3 class="text-lg font-bold text-text-primary border-b border-border-light pb-2">Input &
+                        Konfigurasi</h3>
+
+                    <div class="space-y-2">
+                        <label for="analysis-input-text" class="block text-sm font-semibold text-text-primary">Area
+                            Input Ciphertext</label>
+                        <textarea id="analysis-input-text" placeholder="Masukkan ciphertext yang akan dianalisis..."
+                            class="w-full h-32 p-3 border border-border-light rounded-lg focus:ring-primary-teal focus:border-primary-teal font-mono text-sm resize-y bg-input-bg"></textarea>
+                        <div class="flex justify-between text-xs mt-1">
+                            <span class="raw-count text-text-secondary"># <span id="analysis-raw-char-count">0</span>
+                                karakter asli</span>
+                            <span class="clean-count text-primary-teal font-semibold">🧹 <span
+                                    id="analysis-clean-char-count">0</span> setelah cleaning</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-2">
+                        <h3 class="text-base font-semibold text-text-primary">Pemilihan Alat Analisis</h3>
+                        <select id="analysis-tool-select"
+                            class="w-full p-3 border border-border-light rounded-lg focus:ring-primary-teal focus:border-primary-teal text-sm bg-input-bg">
+                            <option value="frequency">Frequency Analysis</option>
+                            <option value="bruteforce">Caesar Brute-Force</option>
+                        </select>
+                        <p class="text-xs text-text-secondary mt-1" id="analysis-tool-desc">Analisis distribusi
+                            frekuensi huruf</p>
+                    </div>
+
+                    <button
+                        class="btn bg-primary-teal text-white py-3 px-6 rounded-lg font-semibold hover:bg-secondary-teal transition duration-150 w-full mt-4 shadow-md active:scale-[0.98]"
+                        id="analyze-btn">ANALYZE CIPHERTEXT</button>
+
+                    <div class="text-sm pt-2">
+                        <span id="analysis-log" class="text-primary-teal font-semibold">Siap untuk analisis.</span>
+                    </div>
+
+                </div>
+
+                <div
+                    class="bg-card-bg p-6 rounded-xl shadow-medium min-h-[400px] analysis-result-box border border-border-light">
+                    <h3 class="text-lg font-bold text-text-primary border-b border-border-light pb-2">Hasil Analisis
+                    </h3>
+
+                    <div class="analysis-placeholder text-center py-10" id="analysis-placeholder-default">
+                        <svg class="w-12 h-12 mx-auto text-border-light mb-3" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 19V6l7 7V6">
+                            </path>
+                        </svg>
+                        <p class="text-text-secondary">Belum ada hasil analisis. Masukkan ciphertext dan klik ANALYZE
+                            untuk memulai.</p>
+                    </div>
+
+                    <div id="analysis-output-content" class="w-full" style="display: none;">
+
+                        <div class="flex justify-between items-center mb-4 border-b border-border-light pb-2">
+                            <h4 class="text-base font-semibold text-text-primary">Visualisasi Data</h4>
+                            <button
+                                class="copy-data-btn bg-input-bg text-text-secondary text-xs py-1.5 px-3 rounded-full hover:bg-gray-300 transition duration-150 active:scale-[0.98] border border-border-light shadow-subtle"
+                                id="copy-analysis-btn">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m-7 4l3 3m0 0l-3 3m3-3H4">
+                                    </path>
+                                </svg>
+                                Copy Data
+                            </button>
+                        </div>
+
+                        <div class="bar-chart-container space-y-1" id="frequency-bars">
+                        </div>
+
+                        <p class="text-xs mt-4 text-text-secondary">
+                            Total karakter bersih: <span id="total-analysis-chars" class="font-semibold">0</span>
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Bandingkan dengan frekuensi standar bahasa Inggris (E:12.7%, T:9.1%, A:8.2%, O:7.5%)
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navTabs = document.querySelectorAll('.nav-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const primaryTeal = 'text-primary-teal';
+            const defaultText = 'text-text-secondary';
+            const activeBorder = 'border-primary-teal';
+            const defaultBorder = 'border-transparent';
+            const cipherOptions = document.querySelectorAll('.cipher-option');
+
+            const setActiveTabStyle = (tab, isActive) => {
+                if (isActive) {
+                    tab.classList.add(primaryTeal, activeBorder);
+                    tab.classList.remove(defaultText, defaultBorder);
+                } else {
+                    tab.classList.remove(primaryTeal, activeBorder);
+                    tab.classList.add(defaultText, defaultBorder);
+                }
+            };
+
+            navTabs.forEach(tab => {
+                const isActive = tab.classList.contains('active');
+                setActiveTabStyle(tab, isActive);
+
+                tab.addEventListener('click', function () {
+                    const targetTabId = this.dataset.tab;
+
+                    navTabs.forEach(t => setActiveTabStyle(t, false));
+                    setActiveTabStyle(this, true);
+
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                        content.classList.remove('active');
+                    });
+
+                    const targetContent = document.getElementById(targetTabId);
+                    if (targetContent) {
+                        targetContent.classList.remove('hidden');
+                        targetContent.classList.add('active');
+                    }
+                });
+            });
+
+            const lightBorder = 'border-border-light';
+            const activeBg = 'bg-teal-50/50';
+
+            cipherOptions.forEach(opt => {
+                opt.addEventListener('click', function () {
+                    cipherOptions.forEach(o => {
+                        o.classList.remove('selected', activeBorder, activeBg);
+                        o.classList.add(lightBorder);
+                    });
+                    this.classList.add('selected', activeBorder, activeBg);
+                    this.classList.remove(lightBorder);
+                });
+            });
+            const caesarOption = document.querySelector('.cipher-option[data-cipher="caesar"]');
+            if (caesarOption) {
+                caesarOption.classList.add('selected', activeBorder, activeBg);
+                caesarOption.classList.remove(lightBorder);
+            }
+        });
+    </script>
+</body>
+
+</html>
